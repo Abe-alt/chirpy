@@ -21,9 +21,11 @@ func middlewareCors(next http.Handler) http.Handler {
 func main() {
 	const port = "8080"
 	const filepathRoot = "."
+	const pathImg = "./assets"
 	// Create a new http.ServeMux
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
+	mux.Handle("/assets", http.FileServer(http.Dir(pathImg)))
 	//Wrap that mux in a custom middleware function that adds CORS headers to the response (see the tip below on how to do that).
 	corsMux := middlewareCors(mux)
 
