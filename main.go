@@ -6,26 +6,26 @@ import (
 )
 
 func main() {
-	const port = "8080"
 	const filepathRoot = "."
-	const pathImg = "./assets"
-	// Create a new http.ServeMux
+	//const healthzPath = "/healthz"
+	const imageFilePath = "./assets"
+	const port = "8080"
+
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
-	mux.Handle("/assets", http.FileServer(http.Dir(pathImg)))
 
-	//Wrap that mux in a custom middleware function that adds CORS headers to the response (see the tip below on how to do that).
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Write([]byte("ok"))
+	})
 	corsMux := middlewareCors(mux)
 
-	//Create a new http.Server and use the corsMux as the handler
-	srv := &http.Server{Addr: ":" + port, Handler: corsMux}
-	//&http.Server{} creates a new http.Server struct and returns a pointer to that struct.
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: corsMux,
+	}
 
-	//Use the server's ListenAndServe method to start the server
-	log.Printf("serving files from %s on port %s:", filepathRoot, port)
+	log.Printf("Serving files from %s on port: %s\n", imageFilePath, port)
 	log.Fatal(srv.ListenAndServe())
-	//if err := http.ListenAndServe(":8080", corsMux); err != nil {
-	//	log.Fatal(err)
-	//}
-
 }
