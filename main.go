@@ -7,18 +7,13 @@ import (
 
 func main() {
 	const filepathRoot = "."
-	//const healthzPath = "/healthz"
-	const imageFilePath = "./assets"
 	const port = "8080"
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(filepathRoot)))
+	files := http.FileServer(http.Dir(filepathRoot))
+	mux.Handle("/app/", http.StripPrefix("/app/", files))
+	mux.HandleFunc("/healthz", healthz)
 
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Write([]byte("ok"))
-	})
 	corsMux := middlewareCors(mux)
 
 	srv := &http.Server{
@@ -26,6 +21,12 @@ func main() {
 		Handler: corsMux,
 	}
 
-	log.Printf("Serving files from %s on port: %s\n", imageFilePath, port)
+	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
+}
+
+func healthz(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte("ok"))
 }
