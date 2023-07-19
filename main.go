@@ -22,7 +22,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Handle("/app", http.StripPrefix("/app", cfg))
-	r.Handle("/app/*", http.StripPrefix("/app/", cfg))
+	r.Handle("/app/*", http.StripPrefix("/app", cfg))
 
 	r.Get("/healthz", healthz)
 	r.Get("/metrics", cfgApi.metrics)
