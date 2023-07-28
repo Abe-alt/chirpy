@@ -87,14 +87,18 @@ func respondwithError(w http.ResponseWriter, code int, msg string) {
 
 }
 
-func validate_chirp(w http.ResponseWriter, r *http.Request) {
+type params struct {
+	Body string `json:"body"`
+	//Cleaned_body string `json:"cleaned_Body"`
+}
+type clean struct {
+	Cleaned_body string `json:"cleaned_Body"`
+}
+type validChirp struct {
+	Valid bool `json:"valid"`
+}
 
-	type params struct {
-		Body string `json:"body"`
-	}
-	type validChirp struct {
-		Valid bool `json:"valid"`
-	}
+func validate_chirp(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	param := params{}
@@ -103,20 +107,26 @@ func validate_chirp(w http.ResponseWriter, r *http.Request) {
 		respondwithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
-	text := strings.Split(param.Body, " ")
 
-	for i := 0; i < len(text); i++ {
-		if text[i] == "bad" {
-			text[i] = "#####"
-		}
-
-	}
-
-	if len(text) > 140 {
+	if len(param.Body) > 140 {
 		respondwithError(w, 400, "Chirp is too long")
 	} else {
+		respondwithJson(w, 200, clean{
+			Cleaned_body: responsCleaned(param.Body),
+		})
+		//respondwithJson(w, 200, responsCleaned(param.Body))
 
-		respondwithJson(w, 200, text)
 	}
 
+}
+
+func responsCleaned(text string) string {
+
+	slice := strings.Split(strings.ToLower(text), " ")
+	for i := 0; i < len(slice); i++ {
+		if slice[i] == "kerfuffle" || slice[i] == "sharbert" || slice[i] == "fornax" {
+			slice[i] = "****"
+		}
+	}
+	return strings.Join(slice, " ")
 }
