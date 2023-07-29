@@ -7,24 +7,30 @@ import (
 )
 
 func (cfg *apiconfig) handlerChirpRetrieve(w http.ResponseWriter, r *http.Request) {
-
 	uID := chi.URLParam(r, "id")
-	dbChirps, err := cfg.DB.GetChirps()
+	intUID, err := strconv.Atoi(uID)
 	if err != nil {
-		respondwithError(w, http.StatusInternalServerError, "Couldn't retrieve chirps")
+		respondwithError(w, http.StatusNotFound, "Wrong Chirp ID")
+		return
 	}
-	chirps := []Chirp{}
-	for _, dbChirp := range dbChirps {
-		chirps = append(chirps, Chirp{
-			ID:   dbChirp.ID,
-			Body: dbChirp.Body,
-		})
+
+	dbChirp, err := cfg.DB.GetChirp(intUID)
+	if err != nil {
+		respondwithError(w, 404, "Couldn't retrieve the chirp")
+		return
 	}
-	intUID, _ := strconv.Atoi(uID)
-	for i := 0; i < len(chirps); i++ {
-		//for _, chirp := range chirps {
-		if chirps[i].ID == intUID {
-			respondwithJson(w, http.StatusOK, chirps[i].Body)
-		}
-	}
+
+	respondwithJson(w, http.StatusOK, Chirp{
+		ID:   dbChirp.ID,
+		Body: dbChirp.Body,
+	})
+
+	// ***** own code to retrieve a clean chirp msg *******
+	//	for i := 0; i < len(chirps); i++ {
+	//		//for _, chirp := range chirps {
+	//		if chirps[i].ID == intUID {
+	//			respondwithJson(w, http.StatusOK, chirps[i].Body)
+	//		}
+	//	}
+	//	w.WriteHeader(404)
 }
