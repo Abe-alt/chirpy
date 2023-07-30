@@ -6,14 +6,16 @@ import (
 )
 
 type User struct {
-	ID    int    `json:"id"`
+	ID int `json:"id"`
+	//Password int    `json:"password"`
 	Email string `json:"email"`
 }
 
 func (cfg *apiconfig) handlerUsers(w http.ResponseWriter, r *http.Request) {
 
 	type parameters struct {
-		Email string `json:"email"`
+		Password int    `json:"password"`
+		Email    string `json:"email"`
 	}
 	decoder := json.NewDecoder(r.Body)
 	parameter := parameters{}
@@ -22,13 +24,14 @@ func (cfg *apiconfig) handlerUsers(w http.ResponseWriter, r *http.Request) {
 		respondwithError(w, http.StatusInternalServerError, "can't decode parameters")
 		return
 	}
-	user, err := cfg.DB.CreateNewUser(parameter.Email)
+	user, err := cfg.DB.CreateNewUser(parameter.Email, parameter.Password)
 	if err != nil {
 		respondwithError(w, http.StatusInternalServerError, "can't create user")
 		return
 	}
 	respondwithJson(w, 201, User{
-		ID:    user.ID,
+		ID: user.ID,
+		//Password: user.Password,
 		Email: user.Email,
 	})
 

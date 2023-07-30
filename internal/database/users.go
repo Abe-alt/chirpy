@@ -3,19 +3,21 @@ package database
 import "errors"
 
 type User struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
+	ID       int    `json:"id"`
+	Password int    `json:"password"`
+	Email    string `json:"email"`
 }
 
-func (db *DB) CreateNewUser(email string) (User, error) {
+func (db *DB) CreateNewUser(email string, password int) (User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
 	}
 	id := len(dbStructure.Users) + 1
 	user := User{
-		ID:    id,
-		Email: email,
+		ID:       id,
+		Password: password,
+		Email:    email,
 	}
 	dbStructure.Users[id] = user
 	err = db.writeDB(dbStructure)
