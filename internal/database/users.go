@@ -54,3 +54,16 @@ func (db *DB) HashPassword(password string) string {
 	}
 	return string(hash)
 }
+
+func (db *DB) GetUserByEmail(email string) (User, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, err
+	}
+	for _, user := range dbStructure.Users {
+		if user.Email == email {
+			return user, nil
+		}
+	}
+	return User{}, errors.New("user not exists")
+}
