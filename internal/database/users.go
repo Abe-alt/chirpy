@@ -55,6 +55,10 @@ func (db *DB) HashPassword(password string) string {
 	return string(hash)
 }
 
+func (db *DB) CheckPasswordHash(hash string, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+}
+
 func (db *DB) GetUserByEmail(email string) (User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
