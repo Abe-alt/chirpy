@@ -25,11 +25,11 @@ func (cfg *apiconfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	err = cfg.DB.CheckPasswordHash(user.Password, parameters.Password)
 	if err != nil {
-		respondwithError(w, http.StatusInternalServerError, "incorrect password")
+		respondwithError(w, http.StatusUnauthorized, "incorrect password")
 		return
 	}
 
-	respondwithJson(w, 201, User{
+	respondwithJson(w, 200, User{
 		ID:    user.ID,
 		Email: user.Email,
 	})
