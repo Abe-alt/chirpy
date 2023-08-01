@@ -13,6 +13,10 @@ type User struct {
 }
 
 func (db *DB) CreateNewUser(email, password string) (User, error) {
+
+	if _, err := db.GetUserByEmail(email); !errors.Is(err, errors.New("user not exists")) {
+		return User{}, errors.New("user already exists")
+	}
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err

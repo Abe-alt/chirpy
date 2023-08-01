@@ -126,3 +126,11 @@ func (db *DB) writeDB(dbStructure DBStructure) error {
 	}
 	return nil
 }
+
+func (db *DB) ResetDB() error {
+	err := os.Remove(db.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return db.ensureDB()
+}
