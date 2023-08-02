@@ -2,30 +2,29 @@ package database
 
 import (
 	"errors"
-	"golang.org/x/crypto/bcrypt"
-	"log"
 )
 
 type User struct {
-	ID       int    `json:"id"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
+	ID             int    `json:"id"`
+	HashedPassword string `json:"hashed_password"`
+	Email          string `json:"email"`
 }
 
-func (db *DB) CreateNewUser(email, password string) (User, error) {
+func (db *DB) CreateNewUser(email, hashedPassword string) (User, error) {
 
-	if _, err := db.GetUserByEmail(email); !errors.Is(err, errors.New("user not exists")) {
-		return User{}, errors.New("user already exists")
-	}
+	//if _, err := db.GetUserByEmail(email); !errors.Is(err, errors.New("user not exists")) {
+	//	return User{}, errors.New("user already exists")
+	//}
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, err
 	}
 	id := len(dbStructure.Users) + 1
 	user := User{
-		ID:       id,
-		Password: db.HashPassword(password),
-		Email:    email,
+		ID: id,
+		//Password: db.HashPassword(password),
+		HashedPassword: hashedPassword,
+		Email:          email,
 	}
 	dbStructure.Users[id] = user
 	err = db.writeDB(dbStructure)
@@ -49,18 +48,6 @@ func (db *DB) GetUser(id int) (User, error) {
 	}
 
 	return user, nil
-}
-
-func (db *DB) HashPassword(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("couldn't encrypt the password")
-	}
-	return string(hash)
-}
-
-func (db *DB) CheckPasswordHash(hash string, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
 
 func (db *DB) GetUserByEmail(email string) (User, error) {
