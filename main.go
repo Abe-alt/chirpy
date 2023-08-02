@@ -63,6 +63,7 @@ func main() {
 	apiRouter.Get("/chirps/{id}", cfgApi.handlerChirpRetrieve)
 	apiRouter.Post("/users", cfgApi.handlerUsers)
 	apiRouter.Post("/login", cfgApi.handlerLogin)
+	apiRouter.Put("/users", cfgApi.handlerUserUpdate)
 	r.Mount("/api", apiRouter)
 
 	metricsRouter := chi.NewRouter()

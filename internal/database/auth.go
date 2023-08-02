@@ -1,11 +1,16 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
+	"strings"
 	"time"
 )
+
+var ErrNoAuthHeaderIncluded = errors.New("not auth header included in request")
 
 func (db *DB) HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -32,40 +37,45 @@ func (db *DB) MakeJWT(userID int, tokenSecret string, expiresIn time.Duration) (
 	return token.SignedString(signingKey)
 }
 
-//func (db *DB) ValidateJWT(tokenString, tokenSecret string) (string, error) {
-//	//claims := jwt.RegisteredClaims{
-//	//	Issuer:    "chirpy",
-//	//	Subject:   string(),
-//	//	Audience:  nil,
-//	//	ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(2)),
-//	//	IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-//	//}
-//	//
-//	//jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-//
-//	claimsStruct := jwt.RegisteredClaims{}
-//	token, err := jwt.ParseWithClaims(
-//		tokenString,
-//		&claimsStruct,
-//		func(token *jwt.Token) (interface{}, error) { return []byte(tokenSecret), nil },
-//	)
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	userIDString, err := token.Claims.GetSubject()
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	expiresAt, err := token.Claims.GetExpirationTime()
-//	if err != nil {
-//		return "", err
-//	}
-//
-//	if expiresAt.Before(time.Now().UTC()) {
-//		return "", errors.New("JWT is expired")
-//	}
-//
-//	return userIDString, nil
-//}
+func (db *DB) GetBearerToken(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", ErrNoAuthHeaderIncluded
+	}
+	splitAuth := strings.Split(authHeader, " ")
+	if len(splitAuth) < 2 || splitAuth[0] != "Bearer" {
+		return "", errors.New("malformed authorization header")
+	}
+
+	return splitAuth[1], nil
+}
+
+func (db *DB) ValidateJWT(tokenString string, tokenSecret string) (string, error) {
+	//the jwt.ParseWithClaims function to validate the signature of the JWT and extract the claims into a *jwt.Token struct.
+
+	claimsStruct := jwt.RegisteredClaims{}
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&claimsStruct,
+		func(token *jwt.Token) (interface{}, error) { return []byte(tokenSecret), nil },
+	)
+	if err != nil {
+		return "", err
+	}
+
+	userIDString, err := token.Claims.GetSubject()
+	if err != nil {
+		return "", err
+	}
+
+	expiresAt, err := token.Claims.GetExpirationTime()
+	if err != nil {
+		return "", err
+	}
+
+	if expiresAt.Before(time.Now().UTC()) {
+		return "", errors.New("JWT is expired")
+	}
+
+	return userIDString, nil
+}
